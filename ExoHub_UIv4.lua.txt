@@ -1,0 +1,677 @@
+-- ╔═══════════════════════════════════╗
+--   EXO HUB UI v4.0
+--   Grid Card Layout | Self Contained
+--   discord.gg/6QzV9pTWs
+-- ╚═══════════════════════════════════╝
+
+local TweenService     = game:GetService("TweenService")
+local UserInputService = game:GetService("UserInputService")
+local Players          = game:GetService("Players")
+local lp               = Players.LocalPlayer
+
+-- ══════════════════════════════════════
+--  THEME
+-- ══════════════════════════════════════
+local T = {
+    Accent      = Color3.fromRGB(0, 100, 220),
+    AccentLight = Color3.fromRGB(0, 180, 255),
+    Bg          = Color3.fromRGB(10, 12, 22),
+    SidebarBg   = Color3.fromRGB(7, 9, 17),
+    CardBg      = Color3.fromRGB(15, 18, 32),
+    CardBgHover = Color3.fromRGB(18, 22, 40),
+    Border      = Color3.fromRGB(25, 35, 65),
+    BorderLight = Color3.fromRGB(0, 80, 180),
+    Text        = Color3.fromRGB(220, 228, 255),
+    SubText     = Color3.fromRGB(80, 100, 160),
+    DimText     = Color3.fromRGB(50, 65, 110),
+    ToggleOff   = Color3.fromRGB(28, 33, 58),
+    SecLabel    = Color3.fromRGB(60, 80, 140),
+    Online      = Color3.fromRGB(40, 210, 100),
+}
+
+local ICON_ID  = "rbxassetid://71483961072989"
+local SIDE_W   = 200
+local W_W, W_H = 700, 480
+
+-- ══════════════════════════════════════
+--  ICON MAP
+-- ══════════════════════════════════════
+local ICONS = {
+    home="🏠", scripts="</>" , visuals="👁", player="👤", settings="⚙️",
+    credits="⭐", sword="⚔️", zap="⚡", eye="👁", shield="🛡️", fish="🎣",
+    map="🗺️", plane="✈️", star="⭐", target="🎯", skull="💀", fire="🔥",
+    ghost="👻", lock="🔒", users="👥", search="🔍", bell="🔔", heart="❤️",
+    clock="⏰", trash="🗑️", check="✅", info="ℹ️", warning="⚠️", money="💰",
+    diamond="💎", crown="👑", robot="🤖", refresh="🔄", bolt="⚡", anchor="⚓",
+    ["arrow-up"]="⬆️", ["mouse-pointer"]="🖱️", circle="●", farm="🌾",
+    jump="🦘", esp="📡", tp="📍", god="✨", noclip="👻", speed="💨",
+    fly="🕊️", sell="💰", cast="🎣", aim="🎯", kill="💀", run="🏃",
+}
+local function ico(name) return ICONS[name] or "◆" end
+
+-- ══════════════════════════════════════
+--  DESTROY OLD
+-- ══════════════════════════════════════
+if lp.PlayerGui:FindFirstChild("ExoHubUI") then
+    lp.PlayerGui.ExoHubUI:Destroy()
+end
+
+-- ══════════════════════════════════════
+--  SCREEN GUI
+-- ══════════════════════════════════════
+local SG = Instance.new("ScreenGui")
+SG.Name="ExoHubUI"; SG.ResetOnSpawn=false; SG.DisplayOrder=999
+SG.IgnoreGuiInset=true; SG.ZIndexBehavior=Enum.ZIndexBehavior.Sibling
+SG.Parent = lp.PlayerGui
+
+-- ══════════════════════════════════════
+--  WINDOW
+-- ══════════════════════════════════════
+local win = Instance.new("Frame")
+win.Size=UDim2.new(0,W_W,0,0); win.Position=UDim2.new(0.5,-(W_W/2),0.5,-(W_H/2))
+win.BackgroundColor3=T.Bg; win.BorderSizePixel=0
+win.ClipsDescendants=true; win.Active=true; win.Draggable=true; win.Parent=SG
+Instance.new("UICorner",win).CornerRadius=UDim.new(0,14)
+local wStroke=Instance.new("UIStroke",win); wStroke.Color=T.Border; wStroke.Thickness=1.5
+
+-- top glow line
+local glow=Instance.new("Frame",win); glow.Size=UDim2.new(1,0,0,2)
+glow.BackgroundColor3=T.Accent; glow.BorderSizePixel=0; glow.ZIndex=10
+local gGrad=Instance.new("UIGradient",glow)
+gGrad.Color=ColorSequence.new({
+    ColorSequenceKeypoint.new(0,Color3.fromRGB(0,0,0)),
+    ColorSequenceKeypoint.new(0.25,T.Accent),
+    ColorSequenceKeypoint.new(0.75,T.AccentLight),
+    ColorSequenceKeypoint.new(1,Color3.fromRGB(0,0,0)),
+})
+task.spawn(function()
+    local t=0
+    while SG.Parent do
+        t+=0.025; gGrad.Offset=Vector2.new(math.sin(t)*0.7,0); task.wait(0.025)
+    end
+end)
+
+-- ══════════════════════════════════════
+--  SIDEBAR
+-- ══════════════════════════════════════
+local sb=Instance.new("Frame",win)
+sb.Size=UDim2.new(0,SIDE_W,1,0); sb.BackgroundColor3=T.SidebarBg
+sb.BorderSizePixel=0; sb.ZIndex=2
+Instance.new("UICorner",sb).CornerRadius=UDim.new(0,14)
+-- patch right side corners
+local sbp=Instance.new("Frame",sb); sbp.Size=UDim2.new(0,14,1,0)
+sbp.Position=UDim2.new(1,-14,0,0); sbp.BackgroundColor3=T.SidebarBg; sbp.BorderSizePixel=0
+-- divider line
+local sbl=Instance.new("Frame",sb); sbl.Size=UDim2.new(0,1,1,0)
+sbl.Position=UDim2.new(1,0,0,0); sbl.BackgroundColor3=T.Border; sbl.BorderSizePixel=0; sbl.ZIndex=3
+
+-- ── LOGO ──
+local logoF=Instance.new("Frame",sb); logoF.Size=UDim2.new(1,0,0,75)
+logoF.BackgroundTransparency=1; logoF.ZIndex=4
+
+local logoImg=Instance.new("ImageLabel",logoF)
+logoImg.Size=UDim2.new(0,38,0,38); logoImg.Position=UDim2.new(0,12,0.5,-19)
+logoImg.BackgroundTransparency=1; logoImg.Image=ICON_ID; logoImg.ZIndex=5
+Instance.new("UICorner",logoImg).CornerRadius=UDim.new(0,8)
+-- logo glow
+local lglow=Instance.new("ImageLabel",logoF)
+lglow.Size=UDim2.new(0,54,0,54); lglow.Position=UDim2.new(0,4,0.5,-27)
+lglow.BackgroundTransparency=1; lglow.Image="rbxassetid://425703541"
+lglow.ImageColor3=T.Accent; lglow.ImageTransparency=0.7; lglow.ZIndex=4
+
+local exoLbl=Instance.new("TextLabel",logoF)
+exoLbl.Size=UDim2.new(1,-58,0,20); exoLbl.Position=UDim2.new(0,56,0,17)
+exoLbl.BackgroundTransparency=1; exoLbl.Font=Enum.Font.GothamBlack
+exoLbl.TextSize=16; exoLbl.TextXAlignment=Enum.TextXAlignment.Left; exoLbl.ZIndex=5
+exoLbl.Text="EXO HUB"
+Instance.new("UIGradient",exoLbl).Color=ColorSequence.new({
+    ColorSequenceKeypoint.new(0,T.AccentLight),
+    ColorSequenceKeypoint.new(0.5,T.Text),
+    ColorSequenceKeypoint.new(1,T.AccentLight),
+})
+
+local discLbl=Instance.new("TextLabel",logoF)
+discLbl.Size=UDim2.new(1,-58,0,12); discLbl.Position=UDim2.new(0,56,0,40)
+discLbl.BackgroundTransparency=1; discLbl.Font=Enum.Font.GothamMedium
+discLbl.TextSize=9; discLbl.TextColor3=T.SubText
+discLbl.TextXAlignment=Enum.TextXAlignment.Left; discLbl.ZIndex=5
+discLbl.Text="discord.gg/6QzV9pTWs"
+
+-- divider under logo
+local ld=Instance.new("Frame",sb); ld.Size=UDim2.new(1,-16,0,1)
+ld.Position=UDim2.new(0,8,0,75); ld.BackgroundColor3=T.Border; ld.BorderSizePixel=0; ld.ZIndex=3
+
+-- ── SEARCH ──
+local sf=Instance.new("Frame",sb); sf.Size=UDim2.new(1,-16,0,30)
+sf.Position=UDim2.new(0,8,0,83); sf.BackgroundColor3=T.CardBg
+sf.BorderSizePixel=0; sf.ZIndex=4
+Instance.new("UICorner",sf).CornerRadius=UDim.new(0,8)
+Instance.new("UIStroke",sf).Color=T.Border
+
+local sico=Instance.new("TextLabel",sf); sico.Size=UDim2.new(0,24,1,0)
+sico.BackgroundTransparency=1; sico.Text="🔍"; sico.TextSize=11
+sico.Font=Enum.Font.GothamBold; sico.ZIndex=5
+
+local sbox=Instance.new("TextBox",sf); sbox.Size=UDim2.new(1,-26,1,0)
+sbox.Position=UDim2.new(0,24,0,0); sbox.BackgroundTransparency=1
+sbox.Text=""; sbox.PlaceholderText="Search..."
+sbox.Font=Enum.Font.GothamMedium; sbox.TextSize=11
+sbox.TextColor3=T.Text; sbox.PlaceholderColor3=T.SubText
+sbox.TextXAlignment=Enum.TextXAlignment.Left; sbox.ZIndex=5
+sbox.ClearTextOnFocus=false
+
+-- ── TAB LIST ──
+local tabScroll=Instance.new("ScrollingFrame",sb)
+tabScroll.Size=UDim2.new(1,0,1,-190); tabScroll.Position=UDim2.new(0,0,0,120)
+tabScroll.BackgroundTransparency=1; tabScroll.BorderSizePixel=0
+tabScroll.ScrollBarThickness=0; tabScroll.CanvasSize=UDim2.new(0,0,0,0)
+tabScroll.AutomaticCanvasSize=Enum.AutomaticSize.Y; tabScroll.ZIndex=4
+local tLL=Instance.new("UIListLayout",tabScroll)
+tLL.SortOrder=Enum.SortOrder.LayoutOrder; tLL.Padding=UDim.new(0,2)
+local tPad=Instance.new("UIPadding",tabScroll)
+tPad.PaddingLeft=UDim.new(0,6); tPad.PaddingRight=UDim.new(0,6); tPad.PaddingTop=UDim.new(0,2)
+
+-- ── STATUS ──
+local statusF=Instance.new("Frame",sb); statusF.Size=UDim2.new(1,0,0,40)
+statusF.Position=UDim2.new(0,0,1,-40); statusF.BackgroundTransparency=1; statusF.ZIndex=4
+
+local statusDot=Instance.new("Frame",statusF); statusDot.Size=UDim2.new(0,8,0,8)
+statusDot.Position=UDim2.new(0,14,0.5,-4); statusDot.BackgroundColor3=T.Online
+statusDot.BorderSizePixel=0; statusDot.ZIndex=5
+Instance.new("UICorner",statusDot).CornerRadius=UDim.new(1,0)
+
+local statusLbl=Instance.new("TextLabel",statusF); statusLbl.Size=UDim2.new(1,-30,1,0)
+statusLbl.Position=UDim2.new(0,28,0,0); statusLbl.BackgroundTransparency=1
+statusLbl.Font=Enum.Font.GothamBold; statusLbl.TextSize=11
+statusLbl.TextXAlignment=Enum.TextXAlignment.Left; statusLbl.ZIndex=5
+statusLbl.Text="Status: Online"
+-- gradient green text
+local stGrad=Instance.new("UIGradient",statusLbl)
+stGrad.Color=ColorSequence.new({
+    ColorSequenceKeypoint.new(0,T.SubText),
+    ColorSequenceKeypoint.new(0.35,T.SubText),
+    ColorSequenceKeypoint.new(0.36,T.Online),
+    ColorSequenceKeypoint.new(1,T.Online),
+})
+
+-- ══════════════════════════════════════
+--  MAIN AREA (right side)
+-- ══════════════════════════════════════
+local mainArea=Instance.new("Frame",win)
+mainArea.Size=UDim2.new(1,-SIDE_W,1,0); mainArea.Position=UDim2.new(0,SIDE_W,0,0)
+mainArea.BackgroundTransparency=1; mainArea.ZIndex=3; mainArea.ClipsDescendants=false
+
+-- top header bar
+local header=Instance.new("Frame",mainArea); header.Size=UDim2.new(1,0,0,58)
+header.BackgroundTransparency=1; header.ZIndex=8
+
+local pageTitleLbl=Instance.new("TextLabel",header)
+pageTitleLbl.Size=UDim2.new(1,-80,0,26); pageTitleLbl.Position=UDim2.new(0,14,0,8)
+pageTitleLbl.BackgroundTransparency=1; pageTitleLbl.Font=Enum.Font.GothamBlack
+pageTitleLbl.TextSize=20; pageTitleLbl.TextColor3=T.Text
+pageTitleLbl.TextXAlignment=Enum.TextXAlignment.Left; pageTitleLbl.ZIndex=9
+pageTitleLbl.Text="Home"
+
+local pageSubLbl=Instance.new("TextLabel",header)
+pageSubLbl.Size=UDim2.new(1,-80,0,16); pageSubLbl.Position=UDim2.new(0,14,0,34)
+pageSubLbl.BackgroundTransparency=1; pageSubLbl.Font=Enum.Font.GothamMedium
+pageSubLbl.TextSize=11; pageSubLbl.TextColor3=T.SubText
+pageSubLbl.TextXAlignment=Enum.TextXAlignment.Left; pageSubLbl.ZIndex=9
+pageSubLbl.Text="Welcome to EXO HUB"
+
+-- window buttons
+local function mkBtn(txt,col,xOff)
+    local b=Instance.new("TextButton",header)
+    b.Size=UDim2.new(0,22,0,22); b.Position=UDim2.new(1,xOff,0,10)
+    b.BackgroundColor3=col; b.Text=txt; b.TextColor3=Color3.fromRGB(200,200,210)
+    b.Font=Enum.Font.GothamBold; b.TextSize=9; b.BorderSizePixel=0; b.ZIndex=10
+    Instance.new("UICorner",b).CornerRadius=UDim.new(0,6)
+    return b
+end
+local closeBtn=mkBtn("✕",Color3.fromRGB(190,45,60),-26)
+local maxBtn  =mkBtn("□",Color3.fromRGB(18,22,40),-52)
+local miniBtn =mkBtn("─",Color3.fromRGB(18,22,40),-78)
+Instance.new("UIStroke",maxBtn).Color=T.Border
+Instance.new("UIStroke",miniBtn).Color=T.Border
+
+local mini=false
+miniBtn.MouseButton1Click:Connect(function()
+    mini=not mini; miniBtn.Text=mini and "+" or "─"
+    TweenService:Create(win,TweenInfo.new(0.3,Enum.EasingStyle.Quart,Enum.EasingDirection.Out),{
+        Size=UDim2.new(0,W_W,0,mini and 58 or W_H)
+    }):Play()
+end)
+closeBtn.MouseButton1Click:Connect(function()
+    TweenService:Create(win,TweenInfo.new(0.25,Enum.EasingStyle.Quart,Enum.EasingDirection.In),{
+        Size=UDim2.new(0,W_W,0,0)
+    }):Play()
+    task.wait(0.3); SG:Destroy()
+end)
+
+-- header divider
+local hDiv=Instance.new("Frame",mainArea); hDiv.Size=UDim2.new(1,-14,0,1)
+hDiv.Position=UDim2.new(0,7,0,57); hDiv.BackgroundColor3=T.Border; hDiv.BorderSizePixel=0; hDiv.ZIndex=8
+
+-- content scroll area
+local content=Instance.new("ScrollingFrame",mainArea)
+content.Size=UDim2.new(1,0,1,-60); content.Position=UDim2.new(0,0,0,60)
+content.BackgroundTransparency=1; content.BorderSizePixel=0
+content.ScrollBarThickness=3; content.ScrollBarImageColor3=T.Accent
+content.CanvasSize=UDim2.new(0,0,0,0); content.AutomaticCanvasSize=Enum.AutomaticSize.Y
+content.ZIndex=4; content.ClipsDescendants=false
+local contentPad=Instance.new("UIPadding",content)
+contentPad.PaddingLeft=UDim.new(0,12); contentPad.PaddingRight=UDim.new(0,16)
+contentPad.PaddingTop=UDim.new(0,6); contentPad.PaddingBottom=UDim.new(0,10)
+local contentLL=Instance.new("UIListLayout",content)
+contentLL.SortOrder=Enum.SortOrder.LayoutOrder; contentLL.Padding=UDim.new(0,6)
+
+-- ══════════════════════════════════════
+--  NOTIFY
+-- ══════════════════════════════════════
+local function Notify(cfg)
+    cfg=cfg or {}
+    local n=Instance.new("Frame",SG); n.Size=UDim2.new(0,260,0,62)
+    n.Position=UDim2.new(1,10,1,-76); n.BackgroundColor3=T.SidebarBg
+    n.BorderSizePixel=0; n.ZIndex=100
+    Instance.new("UICorner",n).CornerRadius=UDim.new(0,10)
+    local ns=Instance.new("UIStroke",n); ns.Color=T.Accent; ns.Thickness=1.2
+    local ab=Instance.new("Frame",n); ab.Size=UDim2.new(0,3,1,-14)
+    ab.Position=UDim2.new(0,7,0,7); ab.BackgroundColor3=T.Accent; ab.BorderSizePixel=0
+    Instance.new("UICorner",ab).CornerRadius=UDim.new(1,0)
+    local nt=Instance.new("TextLabel",n); nt.Size=UDim2.new(1,-22,0,18)
+    nt.Position=UDim2.new(0,17,0,10); nt.BackgroundTransparency=1
+    nt.Font=Enum.Font.GothamBold; nt.TextSize=12; nt.TextColor3=T.Text
+    nt.TextXAlignment=Enum.TextXAlignment.Left; nt.ZIndex=101; nt.Text=cfg.Title or "EXO HUB"
+    local nd=Instance.new("TextLabel",n); nd.Size=UDim2.new(1,-22,0,14)
+    nd.Position=UDim2.new(0,17,0,32); nd.BackgroundTransparency=1
+    nd.Font=Enum.Font.GothamMedium; nd.TextSize=10; nd.TextColor3=T.SubText
+    nd.TextXAlignment=Enum.TextXAlignment.Left; nd.ZIndex=101; nd.Text=cfg.Content or ""
+    TweenService:Create(n,TweenInfo.new(0.3,Enum.EasingStyle.Back,Enum.EasingDirection.Out),{
+        Position=UDim2.new(1,-270,1,-76)
+    }):Play()
+    task.delay(cfg.Duration or 3,function()
+        TweenService:Create(n,TweenInfo.new(0.25),{Position=UDim2.new(1,10,1,-76)}):Play()
+        task.wait(0.3); n:Destroy()
+    end)
+end
+
+-- ══════════════════════════════════════
+--  TAB SYSTEM
+-- ══════════════════════════════════════
+local allTabs={}; local tabN=0; local firstTab=true
+
+local function makeTab(cfg)
+    tabN+=1; local key=tostring(tabN); local isFirst=firstTab; firstTab=false
+
+    -- sidebar button
+    local btn=Instance.new("TextButton",tabScroll)
+    btn.Size=UDim2.new(1,0,0,34); btn.BackgroundColor3=Color3.fromRGB(0,0,0)
+    btn.BackgroundTransparency=1; btn.Text=""; btn.BorderSizePixel=0
+    btn.ZIndex=5; btn.LayoutOrder=tabN
+    Instance.new("UICorner",btn).CornerRadius=UDim.new(0,8)
+
+    local btnIco=Instance.new("TextLabel",btn); btnIco.Size=UDim2.new(0,24,1,0)
+    btnIco.Position=UDim2.new(0,8,0,0); btnIco.BackgroundTransparency=1
+    btnIco.Text=ico(cfg.Icon); btnIco.TextSize=14; btnIco.Font=Enum.Font.GothamBold
+    btnIco.TextColor3=T.SubText; btnIco.ZIndex=6
+
+    local btnLbl=Instance.new("TextLabel",btn); btnLbl.Size=UDim2.new(1,-36,1,0)
+    btnLbl.Position=UDim2.new(0,34,0,0); btnLbl.BackgroundTransparency=1
+    btnLbl.Text=cfg.Title or "Tab"; btnLbl.Font=Enum.Font.GothamBold
+    btnLbl.TextSize=12; btnLbl.TextColor3=T.SubText
+    btnLbl.TextXAlignment=Enum.TextXAlignment.Left; btnLbl.ZIndex=6
+
+    -- indicator bar
+    local bar=Instance.new("Frame",btn); bar.Size=UDim2.new(0,3,0.6,0)
+    bar.Position=UDim2.new(0,0,0.2,0); bar.BackgroundColor3=T.Accent
+    bar.BorderSizePixel=0; bar.Visible=false; bar.ZIndex=7
+    Instance.new("UICorner",bar).CornerRadius=UDim.new(1,0)
+
+    allTabs[key]={btn=btn,ico=btnIco,lbl=btnLbl,bar=bar,title=cfg.Title,sub=cfg.Sub or ""}
+
+    local function activate()
+        for k,d in pairs(allTabs) do
+            local on=k==key
+            TweenService:Create(d.btn,TweenInfo.new(0.15),{
+                BackgroundColor3=on and T.CardBg or Color3.fromRGB(0,0,0),
+                BackgroundTransparency=on and 0 or 1,
+            }):Play()
+            TweenService:Create(d.lbl,TweenInfo.new(0.15),{TextColor3=on and T.Text or T.SubText}):Play()
+            TweenService:Create(d.ico,TweenInfo.new(0.15),{TextColor3=on and T.AccentLight or T.SubText}):Play()
+            d.bar.Visible=on
+            -- hide/show pages
+            for _,child in ipairs(content:GetChildren()) do
+                if child:IsA("Frame") or child:IsA("ScrollingFrame") then
+                    if child:GetAttribute("tabKey") then
+                        child.Visible = child:GetAttribute("tabKey")==k and on
+                    end
+                end
+            end
+        end
+        pageTitleLbl.Text=cfg.Title or ""
+        pageSubLbl.Text=cfg.Sub or ("Welcome to "..( cfg.Title or "EXO HUB"))
+    end
+
+    btn.MouseButton1Click:Connect(activate)
+
+    -- ── PAGE CONTAINER ──
+    local page=Instance.new("Frame",content)
+    page.Size=UDim2.new(1,0,0,0); page.AutomaticSize=Enum.AutomaticSize.Y
+    page.BackgroundTransparency=1; page.BorderSizePixel=0
+    page.Visible=isFirst; page.ZIndex=4; page.LayoutOrder=1
+    page:SetAttribute("tabKey",key)
+    local pageLL=Instance.new("UIListLayout",page)
+    pageLL.SortOrder=Enum.SortOrder.LayoutOrder; pageLL.Padding=UDim.new(0,6)
+
+    if isFirst then activate() end
+
+    -- search
+    sbox:GetPropertyChangedSignal("Text"):Connect(function()
+        local q=sbox.Text:lower()
+        for _,grid in ipairs(page:GetChildren()) do
+            if grid:IsA("Frame") and grid:GetAttribute("isGrid") then
+                for _,card in ipairs(grid:GetChildren()) do
+                    if card:IsA("Frame") and card:GetAttribute("cardTitle") then
+                        card.Visible = q=="" or card:GetAttribute("cardTitle"):lower():find(q,1,true)~=nil
+                    end
+                end
+            end
+        end
+    end)
+
+    local secN=0
+
+    local tabObj={}
+
+    function tabObj:Section(sCfg)
+        sCfg=sCfg or {}
+        secN+=1
+
+        -- section label
+        local secLbl=Instance.new("TextLabel",page)
+        secLbl.Size=UDim2.new(1,0,0,20); secLbl.BackgroundTransparency=1
+        secLbl.Font=Enum.Font.GothamBold; secLbl.TextSize=11
+        secLbl.TextColor3=T.SecLabel; secLbl.LetterSpacing=1
+        secLbl.TextXAlignment=Enum.TextXAlignment.Left; secLbl.ZIndex=5
+        secLbl.Text=(sCfg.Title or ""):upper(); secLbl.LayoutOrder=secN*100
+
+        -- GRID FRAME (3 columns)
+        local grid=Instance.new("Frame",page)
+        grid.Size=UDim2.new(1,0,0,0); grid.AutomaticSize=Enum.AutomaticSize.Y
+        grid.BackgroundTransparency=1; grid.BorderSizePixel=0; grid.ZIndex=5
+        grid.LayoutOrder=secN*100+1; grid:SetAttribute("isGrid",true)
+        local gLL=Instance.new("UIGridLayout",grid)
+        gLL.CellSize=UDim2.new(0.333,-4,0,82)
+        gLL.CellPadding=UDim2.new(0,5,0,5)
+        gLL.SortOrder=Enum.SortOrder.LayoutOrder
+        gLL.FillDirectionMaxCells=3
+        -- auto-size height via UIGridLayout
+        grid:GetPropertyChangedSignal("AbsoluteSize"):Connect(function()
+            local rows=math.ceil(gLL.AbsoluteContentSize.Y/87)
+            grid.Size=UDim2.new(1,0,0,gLL.AbsoluteContentSize.Y)
+        end)
+
+        local cardN=0
+        local sObj={}
+
+        -- ── TOGGLE CARD ──
+        function sObj:Toggle(cfg)
+            cardN+=1
+            local card=Instance.new("Frame",grid)
+            card.BackgroundColor3=T.CardBg; card.BorderSizePixel=0; card.ZIndex=6
+            card.LayoutOrder=cardN; card:SetAttribute("cardTitle",cfg.Title or "")
+            Instance.new("UICorner",card).CornerRadius=UDim.new(0,10)
+            local cs=Instance.new("UIStroke",card); cs.Color=T.Border; cs.Thickness=1
+
+            -- icon
+            local ciL=Instance.new("TextLabel",card); ciL.Size=UDim2.new(0,22,0,22)
+            ciL.Position=UDim2.new(0,10,0,10); ciL.BackgroundTransparency=1
+            ciL.Text=ico(cfg.Icon); ciL.TextSize=16; ciL.Font=Enum.Font.GothamBold
+            ciL.TextColor3=T.AccentLight; ciL.ZIndex=7
+
+            -- title
+            local ctL=Instance.new("TextLabel",card); ctL.Size=UDim2.new(1,-20,0,16)
+            ctL.Position=UDim2.new(0,10,0,35); ctL.BackgroundTransparency=1
+            ctL.Font=Enum.Font.GothamBold; ctL.TextSize=12; ctL.TextColor3=T.Text
+            ctL.TextXAlignment=Enum.TextXAlignment.Left; ctL.ZIndex=7
+            ctL.Text=cfg.Title or ""; ctL.TextTruncate=Enum.TextTruncate.AtEnd
+
+            -- desc
+            local cdL=Instance.new("TextLabel",card); cdL.Size=UDim2.new(1,-20,0,12)
+            cdL.Position=UDim2.new(0,10,0,50); cdL.BackgroundTransparency=1
+            cdL.Font=Enum.Font.GothamMedium; cdL.TextSize=9; cdL.TextColor3=T.SubText
+            cdL.TextXAlignment=Enum.TextXAlignment.Left; cdL.ZIndex=7
+            cdL.Text=cfg.Desc or ""; cdL.TextTruncate=Enum.TextTruncate.AtEnd
+
+            -- pill toggle (bottom right)
+            local pill=Instance.new("Frame",card); pill.Size=UDim2.new(0,36,0,20)
+            pill.AnchorPoint=Vector2.new(1,1); pill.Position=UDim2.new(1,-8,1,-8)
+            pill.BackgroundColor3=T.ToggleOff; pill.BorderSizePixel=0; pill.ZIndex=7
+            Instance.new("UICorner",pill).CornerRadius=UDim.new(1,0)
+            local ps=Instance.new("UIStroke",pill); ps.Color=T.Border; ps.Thickness=1
+            local dot=Instance.new("Frame",pill); dot.Size=UDim2.new(0,12,0,12)
+            dot.AnchorPoint=Vector2.new(0.5,0.5); dot.Position=UDim2.new(0.28,0,0.5,0)
+            dot.BackgroundColor3=T.SubText; dot.BorderSizePixel=0; dot.ZIndex=8
+            Instance.new("UICorner",dot).CornerRadius=UDim.new(1,0)
+
+            local cb=Instance.new("TextButton",card); cb.Size=UDim2.new(1,0,1,0)
+            cb.BackgroundTransparency=1; cb.Text=""; cb.ZIndex=9
+            local on=cfg.Value or false
+            local ti=TweenInfo.new(0.18,Enum.EasingStyle.Quart)
+            local function set(v)
+                on=v
+                TweenService:Create(pill,ti,{BackgroundColor3=on and T.Accent or T.ToggleOff}):Play()
+                TweenService:Create(ps,  ti,{Color=on and T.Accent or T.Border,Transparency=on and 0.5 or 0}):Play()
+                TweenService:Create(dot, ti,{
+                    Position=on and UDim2.new(0.72,0,0.5,0) or UDim2.new(0.28,0,0.5,0),
+                    BackgroundColor3=on and Color3.fromRGB(255,255,255) or T.SubText
+                }):Play()
+                TweenService:Create(cs,  ti,{Color=on and T.Accent or T.Border,Transparency=on and 0.5 or 0}):Play()
+                TweenService:Create(ciL, ti,{TextColor3=on and T.AccentLight or T.SubText}):Play()
+                if cfg.Callback then cfg.Callback(on) end
+            end
+            if on then task.defer(function() set(true) end) end
+            cb.MouseButton1Click:Connect(function() set(not on) end)
+            -- hover
+            cb.MouseEnter:Connect(function()
+                TweenService:Create(card,TweenInfo.new(0.1),{BackgroundColor3=T.CardBgHover}):Play()
+            end)
+            cb.MouseLeave:Connect(function()
+                TweenService:Create(card,TweenInfo.new(0.1),{BackgroundColor3=T.CardBg}):Play()
+            end)
+            local o={}; function o:Set(v) set(v) end; return o
+        end
+
+        -- ── BUTTON CARD ──
+        function sObj:Button(cfg)
+            cardN+=1
+            local card=Instance.new("Frame",grid)
+            card.BackgroundColor3=T.CardBg; card.BorderSizePixel=0; card.ZIndex=6
+            card.LayoutOrder=cardN; card:SetAttribute("cardTitle",cfg.Title or "")
+            Instance.new("UICorner",card).CornerRadius=UDim.new(0,10)
+            local cs=Instance.new("UIStroke",card); cs.Color=T.Border; cs.Thickness=1
+
+            local ciL=Instance.new("TextLabel",card); ciL.Size=UDim2.new(0,22,0,22)
+            ciL.Position=UDim2.new(0,10,0,10); ciL.BackgroundTransparency=1
+            ciL.Text=ico(cfg.Icon); ciL.TextSize=16; ciL.Font=Enum.Font.GothamBold
+            ciL.TextColor3=T.AccentLight; ciL.ZIndex=7
+
+            local ctL=Instance.new("TextLabel",card); ctL.Size=UDim2.new(1,-20,0,16)
+            ctL.Position=UDim2.new(0,10,0,35); ctL.BackgroundTransparency=1
+            ctL.Font=Enum.Font.GothamBold; ctL.TextSize=12; ctL.TextColor3=T.Text
+            ctL.TextXAlignment=Enum.TextXAlignment.Left; ctL.ZIndex=7
+            ctL.Text=cfg.Title or ""; ctL.TextTruncate=Enum.TextTruncate.AtEnd
+
+            local cdL=Instance.new("TextLabel",card); cdL.Size=UDim2.new(1,-20,0,12)
+            cdL.Position=UDim2.new(0,10,0,50); cdL.BackgroundTransparency=1
+            cdL.Font=Enum.Font.GothamMedium; cdL.TextSize=9; cdL.TextColor3=T.SubText
+            cdL.TextXAlignment=Enum.TextXAlignment.Left; cdL.ZIndex=7
+            cdL.Text=cfg.Desc or ""; cdL.TextTruncate=Enum.TextTruncate.AtEnd
+
+            -- arrow icon
+            local arr=Instance.new("TextLabel",card); arr.Size=UDim2.new(0,20,0,20)
+            arr.AnchorPoint=Vector2.new(1,1); arr.Position=UDim2.new(1,-8,1,-8)
+            arr.BackgroundTransparency=1; arr.Text="▶"; arr.TextSize=9
+            arr.Font=Enum.Font.GothamBold; arr.TextColor3=T.Accent; arr.ZIndex=7
+
+            local cb=Instance.new("TextButton",card); cb.Size=UDim2.new(1,0,1,0)
+            cb.BackgroundTransparency=1; cb.Text=""; cb.ZIndex=9
+            cb.MouseEnter:Connect(function()
+                TweenService:Create(card,TweenInfo.new(0.1),{BackgroundColor3=T.CardBgHover}):Play()
+                TweenService:Create(cs,TweenInfo.new(0.1),{Color=T.BorderLight}):Play()
+            end)
+            cb.MouseLeave:Connect(function()
+                TweenService:Create(card,TweenInfo.new(0.1),{BackgroundColor3=T.CardBg}):Play()
+                TweenService:Create(cs,TweenInfo.new(0.1),{Color=T.Border}):Play()
+            end)
+            cb.MouseButton1Click:Connect(function()
+                TweenService:Create(card,TweenInfo.new(0.08),{BackgroundColor3=Color3.fromRGB(0,50,120)}):Play()
+                task.wait(0.1)
+                TweenService:Create(card,TweenInfo.new(0.15),{BackgroundColor3=T.CardBg}):Play()
+                if cfg.Callback then cfg.Callback() end
+            end)
+        end
+
+        -- ── SLIDER CARD (full width) ──
+        function sObj:Slider(cfg)
+            cardN+=1
+            local card=Instance.new("Frame",grid)
+            card.BackgroundColor3=T.CardBg; card.BorderSizePixel=0; card.ZIndex=6
+            card.LayoutOrder=cardN; card:SetAttribute("cardTitle",cfg.Title or "")
+            Instance.new("UICorner",card).CornerRadius=UDim.new(0,10)
+            local cs=Instance.new("UIStroke",card); cs.Color=T.Border; cs.Thickness=1
+
+            local ciL=Instance.new("TextLabel",card); ciL.Size=UDim2.new(0,20,0,20)
+            ciL.Position=UDim2.new(0,10,0,8); ciL.BackgroundTransparency=1
+            ciL.Text=ico(cfg.Icon); ciL.TextSize=14; ciL.Font=Enum.Font.GothamBold
+            ciL.TextColor3=T.AccentLight; ciL.ZIndex=7
+
+            local ctL=Instance.new("TextLabel",card); ctL.Size=UDim2.new(1,-60,0,14)
+            ctL.Position=UDim2.new(0,34,0,10); ctL.BackgroundTransparency=1
+            ctL.Font=Enum.Font.GothamBold; ctL.TextSize=11; ctL.TextColor3=T.Text
+            ctL.TextXAlignment=Enum.TextXAlignment.Left; ctL.ZIndex=7; ctL.Text=cfg.Title or ""
+
+            local vL=Instance.new("TextLabel",card); vL.Size=UDim2.new(0,36,0,14)
+            vL.Position=UDim2.new(1,-44,0,10); vL.BackgroundTransparency=1
+            vL.Font=Enum.Font.GothamBold; vL.TextSize=12; vL.TextColor3=T.Accent
+            vL.TextXAlignment=Enum.TextXAlignment.Right; vL.ZIndex=7
+            vL.Text=tostring(cfg.Value or cfg.Min or 0)
+
+            local track=Instance.new("Frame",card); track.Size=UDim2.new(1,-20,0,4)
+            track.Position=UDim2.new(0,10,0,52); track.BackgroundColor3=T.ToggleOff
+            track.BorderSizePixel=0; track.ZIndex=7
+            Instance.new("UICorner",track).CornerRadius=UDim.new(1,0)
+
+            local mn,mx=cfg.Min or 0,cfg.Max or 100
+            local pct=((cfg.Value or mn)-mn)/(mx-mn)
+
+            local fill=Instance.new("Frame",track); fill.Size=UDim2.new(pct,0,1,0)
+            fill.BackgroundColor3=T.Accent; fill.BorderSizePixel=0; fill.ZIndex=8
+            Instance.new("UICorner",fill).CornerRadius=UDim.new(1,0)
+            Instance.new("UIGradient",fill).Color=ColorSequence.new({
+                ColorSequenceKeypoint.new(0,T.Accent),ColorSequenceKeypoint.new(1,T.AccentLight),
+            })
+
+            local thumb=Instance.new("Frame",track); thumb.Size=UDim2.new(0,14,0,14)
+            thumb.AnchorPoint=Vector2.new(0.5,0.5); thumb.Position=UDim2.new(pct,0,0.5,0)
+            thumb.BackgroundColor3=Color3.fromRGB(220,235,255); thumb.BorderSizePixel=0; thumb.ZIndex=9
+            Instance.new("UICorner",thumb).CornerRadius=UDim.new(1,0)
+
+            local drag=false
+            thumb.InputBegan:Connect(function(i)
+                if i.UserInputType==Enum.UserInputType.MouseButton1 or i.UserInputType==Enum.UserInputType.Touch then drag=true end
+            end)
+            UserInputService.InputEnded:Connect(function(i)
+                if i.UserInputType==Enum.UserInputType.MouseButton1 or i.UserInputType==Enum.UserInputType.Touch then drag=false end
+            end)
+            UserInputService.InputChanged:Connect(function(i)
+                if not drag then return end
+                if i.UserInputType~=Enum.UserInputType.MouseMovement and i.UserInputType~=Enum.UserInputType.Touch then return end
+                local rel=math.clamp((i.Position.X-track.AbsolutePosition.X)/track.AbsoluteSize.X,0,1)
+                local val=math.floor(mn+rel*(mx-mn))
+                fill.Size=UDim2.new(rel,0,1,0); thumb.Position=UDim2.new(rel,0,0.5,0)
+                vL.Text=tostring(val)
+                if cfg.Callback then cfg.Callback(val) end
+            end)
+        end
+
+        return sObj
+    end
+
+    return tabObj
+end
+
+-- ══════════════════════════════════════
+--  OPEN ANIMATION
+-- ══════════════════════════════════════
+TweenService:Create(win,TweenInfo.new(0.45,Enum.EasingStyle.Back,Enum.EasingDirection.Out),{
+    Size=UDim2.new(0,W_W,0,W_H)
+}):Play()
+
+-- ══════════════════════════════════════
+--  BUILD TABS
+-- ══════════════════════════════════════
+local HomeTab   = makeTab({Title="Home",     Sub="Welcome to EXO HUB",     Icon="home"})
+local MoveTab   = makeTab({Title="Movement", Sub="Speed, Fly and more",     Icon="zap"})
+local VisTab    = makeTab({Title="Visuals",  Sub="ESP and visual features",  Icon="eye"})
+local PlayerTab = makeTab({Title="Player",   Sub="Player tools and cheats",  Icon="player"})
+local SettingsTab=makeTab({Title="Settings", Sub="Configure EXO HUB",       Icon="settings"})
+local CreditsTab = makeTab({Title="Credits",  Sub="Made with ❤️",            Icon="credits"})
+
+-- ── HOME ──
+local HMain = HomeTab:Section({Title="Main Features"})
+HMain:Toggle({Title="Auto Farm",     Desc="Automatically farms",      Icon="farm",   Value=false, Callback=function() end})
+HMain:Toggle({Title="Infinite Jump", Desc="Allows infinite jumping",  Icon="jump",   Value=false, Callback=function() end})
+HMain:Toggle({Title="ESP Players",   Desc="Highlights all players",   Icon="esp",    Value=true,  Callback=function() end})
+
+local HTools = HomeTab:Section({Title="Player Tools"})
+HTools:Button({Title="Teleport Spawn", Desc="Go to spawn",     Icon="tp",     Callback=function() Notify({Title="EXO HUB",Content="Teleported to spawn!",Duration=2}) end})
+HTools:Button({Title="God Mode",       Desc="Become invincible",Icon="god",   Callback=function() Notify({Title="EXO HUB",Content="God Mode activated! ✨",Duration=2}) end})
+HTools:Button({Title="Noclip",         Desc="Walk through walls",Icon="noclip",Callback=function() Notify({Title="EXO HUB",Content="Noclip toggled!",Duration=2}) end})
+
+local HMisc = HomeTab:Section({Title="Misc"})
+HMisc:Slider({Title="Walkspeed", Icon="speed", Min=16, Max=150, Value=16, Callback=function(v)
+    local hum=lp.Character and lp.Character:FindFirstChildOfClass("Humanoid")
+    if hum then hum.WalkSpeed=v end
+end})
+HMisc:Button({Title="Rejoin Game", Desc="Rejoin server", Icon="refresh", Callback=function()
+    game:GetService("TeleportService"):Teleport(game.PlaceId, lp)
+end})
+
+-- ── MOVEMENT ──
+local MoveS=MoveTab:Section({Title="Movement"})
+MoveS:Toggle({Title="Fly",        Desc="Fly around the map",   Icon="fly",   Value=false, Callback=function() end})
+MoveS:Toggle({Title="Speed Hack", Desc="Boost your walkspeed", Icon="speed", Value=false, Callback=function() end})
+MoveS:Toggle({Title="Noclip",     Desc="Walk through walls",   Icon="noclip",Value=false, Callback=function() end})
+MoveS:Slider({Title="Fly Speed",  Icon="bolt", Min=10, Max=200, Value=50,    Callback=function() end})
+
+-- ── VISUALS ──
+local VisS=VisTab:Section({Title="ESP"})
+VisS:Toggle({Title="Player ESP",   Desc="See players through walls", Icon="esp",    Value=false, Callback=function() end})
+VisS:Toggle({Title="Name Tags",    Desc="Show player names",         Icon="users",  Value=false, Callback=function() end})
+VisS:Toggle({Title="Box ESP",      Desc="Draw boxes around players", Icon="target", Value=false, Callback=function() end})
+
+-- ── PLAYER ──
+local PlyrS=PlayerTab:Section({Title="Player"})
+PlyrS:Toggle({Title="God Mode",      Desc="Infinite health",    Icon="god",    Value=false, Callback=function() end})
+PlyrS:Toggle({Title="Infinite Jump", Desc="Jump forever",       Icon="jump",   Value=false, Callback=function() end})
+PlyrS:Button({Title="Heal Player",   Desc="Restore full HP",    Icon="heart",  Callback=function()
+    local hum=lp.Character and lp.Character:FindFirstChildOfClass("Humanoid")
+    if hum then hum.Health=hum.MaxHealth end
+    Notify({Title="EXO HUB",Content="Healed! ❤️",Duration=2})
+end})
+
+-- ── CREDITS ──
+local CredS=CreditsTab:Section({Title="EXO HUB"})
+CredS:Button({Title="EXO HUB v4.0",    Desc="Free forever 🔥",         Icon="star",    Callback=function() end})
+CredS:Button({Title="Join Discord",     Desc="discord.gg/6QzV9pTWs",   Icon="bell",    Callback=function()
+    Notify({Title="EXO HUB",Content="discord.gg/6QzV9pTWs 🔥",Duration=4})
+end})
+CredS:Button({Title="Made with ❤️",    Desc="Thanks for using EXO HUB",Icon="heart",   Callback=function()
+    Notify({Title="EXO HUB",Content="Thanks for using EXO HUB! 🔥",Duration=3})
+end})
+
+-- startup
+task.wait(0.5)
+Notify({Title="EXO HUB",Content="v4.0 loaded! 🔥 discord.gg/6QzV9pTWs",Duration=4})
+print("[EXO HUB] UI v4.0 | discord.gg/6QzV9pTWs")
