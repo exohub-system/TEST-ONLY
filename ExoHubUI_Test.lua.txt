@@ -1,0 +1,69 @@
+-- ╔═══════════════════════════════════╗
+--   EXO HUB UI — TEST SCRIPT
+--   discord.gg/6QzV9pTWs
+-- ╚═══════════════════════════════════╝
+
+-- Load our custom UI library from GitHub
+local Library = loadstring(game:HttpGet(
+    "https://raw.githubusercontent.com/exohub-system/ui/main/ExoHubUI.lua"
+))()
+
+-- Create window with full color control 🔥
+local Window = Library:CreateWindow({
+    Title       = "EXO HUB",
+    Icon        = "rbxassetid://71483961072989",
+    Author      = "discord.gg/6QzV9pTWs",
+    Accent      = Color3.fromRGB(0, 85, 170),
+    AccentLight = Color3.fromRGB(0, 180, 255),
+})
+
+-- Tab + Section
+local Tab     = Window:Tab({ Title = "Test", Emoji = "⚡" })
+local Section = Tab:Section({ Title = "Test Features" })
+
+Section:Toggle({
+    Title = "Toggle Test",
+    Desc  = "Testing our custom toggle",
+    Value = false,
+    Callback = function(state)
+        print("Toggle:", state)
+        Window:Notify({
+            Title   = "EXO HUB",
+            Content = "Toggle is now " .. (state and "ON" or "OFF"),
+            Duration = 2,
+        })
+    end
+})
+
+Section:Button({
+    Title = "Button Test",
+    Desc  = "Testing our custom button",
+    Callback = function()
+        print("Button clicked!")
+        Window:Notify({
+            Title   = "EXO HUB",
+            Content = "Button works! 🔥",
+            Duration = 3,
+        })
+    end
+})
+
+Section:Slider({
+    Title = "Slider Test",
+    Min   = 0,
+    Max   = 100,
+    Value = 50,
+    Callback = function(val)
+        print("Slider:", val)
+    end
+})
+
+-- Startup notification
+task.wait(0.5)
+Window:Notify({
+    Title   = "EXO HUB",
+    Content = "UI loaded! discord.gg/6QzV9pTWs 🔥",
+    Duration = 4,
+})
+
+print("[EXO HUB] UI Test loaded | discord.gg/6QzV9pTWs")
